@@ -1,11 +1,8 @@
 pipeline {
     agent any
 
-    options {
-        skipDefaultCheckout(true)
-    }
-
     stages {
+
         stage('Clone Source Code') {
             steps {
                 checkout scm
@@ -14,34 +11,32 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'npm install'
+                sh 'npm install'
             }
         }
 
         stage('Build Application') {
             steps {
-                bat 'npm run build'
+                sh 'npm run build'
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat 'npm test'
+                sh 'npm test'
             }
         }
 
         stage('Package Application') {
             steps {
-                bat '''
-                if not exist package mkdir package
-                powershell -NoProfile -Command "Compress-Archive -Path * -DestinationPath package\\application.zip -Force"
-                '''
+                sh 'tar -czf application.tar.gz --exclude=.git --exclude=application.tar.gz .'
             }
         }
 
         stage('Deliver Artifact') {
             steps {
-                archiveArtifacts artifacts: 'package/application.zip', fingerprint: true
+                archiveArtifacts artifacts: 'application.tar.gz',
+                                  fingerprint: true
             }
         }
     }
